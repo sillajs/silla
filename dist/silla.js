@@ -1,7 +1,7 @@
 var $ = (function () {
   'use strict';
 
-  var context = [];
+  var parent;
   var helper = document.createElement('i');
   /**
    * Create and attach a dom element.
@@ -13,13 +13,9 @@ var $ = (function () {
    * @returns Element the dom element
    */
 
-  var silla = function $() {
-    // User "arguments" instead of ...args to reduce payload when
-    // converting to browser backwards-compatible code.
-    var args = Array.from(arguments);
-    if (context.length === 0) context.push(document.body); // Matches (TAG.CLASS.LIST)(#ID)( ATTRS)
-
-    var m = (args.shift() || '').match(/^([^\s#]*)(?:#(\S+))?(.*)$/) || [];
+  var silla = function $(elementStr, content, attach, ref) {
+    // Matches (TAG.CLASS.LIST)(#ID)( ATTRS)
+    var m = (elementStr || '').match(/^([^\s#]*)(?:#(\S+))?(.*)$/) || [];
     var m1 = (m[1] || '').split('.'); // Utilize innerHTML's built-in parser for parsing attributes,
     // since specific-use cases can be complicated.
 
@@ -30,19 +26,27 @@ var $ = (function () {
 
     for (var i = 1; i < m1.length; i++) {
       dom.classList.add(m1[i]);
-    } // Add content
+    }
+
+    if (content instanceof Element) {
+      // This means there is no content, so we reassign the arguments
+      // accordingly. This is hacky, but an alternative of shifting
+      // the arguments requires a larger payload when prepocessing, and is
+      // less performant.
+      ref = attach;
+      attach = content;
+    } else if (typeof content === 'function') {
+      var previous = parent;
+      parent = dom;
+      content(dom);
+      parent = previous;
+    } else if (content !== undefined && content !== null) {
+      dom.innerText = content;
+    } // Attach to provided node, parent, or body
 
 
-    if (typeof args[0] === 'string') {
-      dom.innerText = args.shift();
-    } else if (typeof args[0] === 'function') {
-      context.unshift(dom);
-      args.shift()(dom);
-      context.shift();
-    } // Attach to either provided argument or current context
-
-
-    (args[0] || context[0])[args[1] ? 'insertBefore' : 'appendChild'](dom, args[1]);
+    var container = attach || parent || document.body;
+    ref ? container.insertBefore(dom, ref) : container.append(dom);
     return dom;
   };
 

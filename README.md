@@ -53,10 +53,11 @@ Text-representatin of the element being created, in the following order:
     * `<i id="close-icon" aria-hidden="true" title="Close Icon" class="icon close"></i>`
 
 #### CONTENT (optional)
-Either a function or string
+Either a function or string. (non-element value will be converted to a string)
 ##### Content as text:
 * `$('span', 'Hello, World')` ⇒ `<span>Hello, World</div>`
 * `$('button', 'Click Me')` ⇒ `<button>Click Me</button>`
+* `$('button', 42)` ⇒ `<button>42</button>`
 
 ##### Content as a function:
 Passes the dom element as an arg. This is usually unnecessary, since elements are automatically appended to the containing element. However, in cases of delayed execution (timeout, event callback, etc.) it can often be useful.

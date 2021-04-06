@@ -39,6 +39,15 @@ it('creates text', () => {
   expect($('button', 'Click Me').innerText).toBe('Click Me');
 });
 
+it('creates text from non-string type', () => {
+  // Note: innerText SHOULD be a string, but since not using actual
+  // dom parsing in test framework, it doesn't implement that requirement.
+  expect($('button', 42).innerText).toBe(42);
+  expect($('button', true).innerText).toBe(true);
+  expect($('button', null).innerText).toBe(undefined);
+  expect($('button', 0).innerText).toBe(0);
+});
+
 it('attaches to another element', () => {
   const el = document.createElement('div');
   $('button', 'Click Me', el);

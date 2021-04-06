@@ -1,4 +1,4 @@
-const context = [];
+let parent;
 const helper = document.createElement('i');
 
 /**
@@ -10,14 +10,9 @@ const helper = document.createElement('i');
  *
  * @returns Element the dom element
  */
-module.exports = function $() {
-  // User "arguments" instead of ...args to reduce payload when
-  // converting to browser backwards-compatible code.
-  const args = Array.from(arguments);
-  if (context.length === 0) context.push(document.body);
-
+module.exports = function $(elementStr, content, attach, ref) {
   // Matches (TAG.CLASS.LIST)(#ID)( ATTRS)
-  const m = ((args.shift() || '').match(/^([^\s#]*)(?:#(\S+))?(.*)$/) || []);
+  const m = ((elementStr || '').match(/^([^\s#]*)(?:#(\S+))?(.*)$/) || []);
   const m1 = (m[1] || '').split('.');
 
   // Utilize innerHTML's built-in parser for parsing attributes,
@@ -31,17 +26,25 @@ module.exports = function $() {
     dom.classList.add(m1[i]);
   }
 
-  // Add content
-  if (typeof args[0] === 'string') {
-    dom.innerText = args.shift();
-  } else if (typeof args[0] === 'function') {
-    context.unshift(dom);
-    args.shift()(dom);
-    context.shift();
+  if (content instanceof Element) {
+    // This means there is no content, so we reassign the arguments
+    // accordingly. This is hacky, but an alternative of shifting
+    // the arguments requires a larger payload when prepocessing, and is
+    // less performant.
+    ref = attach;
+    attach = content;
+  } else if (typeof content === 'function') {
+      const previous = parent;
+      parent = dom;
+      content(dom);
+      parent = previous;
+  } else if (content !== undefined && content !== null) {
+    dom.innerText = content;
   }
 
-  // Attach to either provided argument or current context
-  (args[0] || context[0])[args[1] ? 'insertBefore' : 'appendChild'](dom, args[1]);
+  // Attach to provided node, parent, or body
+  const container = attach || parent || document.body;
+  ref ? container.insertBefore(dom, ref) : container.append(dom);
 
   return dom;
 };

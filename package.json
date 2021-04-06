@@ -1,6 +1,6 @@
 {
   "name": "silla",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A super simple, super small, and pretty useful tool for building dom elements in JavaScript",
   "scripts": {
     "test": "jest",
